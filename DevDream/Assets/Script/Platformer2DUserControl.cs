@@ -33,6 +33,7 @@ public class Platformer2DUserControl : MonoBehaviour
 		float h = Input.GetAxis("Horizontal");
 		#endif
 
+		print ("h = " + h);
 		// Pass all parameters to the character control script.
 		character.Move( h, crouch , jump );
 
