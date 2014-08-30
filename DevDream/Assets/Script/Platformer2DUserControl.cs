@@ -15,11 +15,11 @@ public class Platformer2DUserControl : MonoBehaviour
     void Update ()
     {
         // Read the jump input in Update so button presses aren't missed.
-#if CROSS_PLATFORM_INPUT
+		#if CROSS_PLATFORM_INPUT
         if (CrossPlatformInput.GetButtonDown("Jump")) jump = true;
-#else
+		#else
 		if (Input.GetButtonDown("Jump")) jump = true;
-#endif
+		#endif
 
     }
 
@@ -33,7 +33,7 @@ public class Platformer2DUserControl : MonoBehaviour
 		float h = Input.GetAxis("Horizontal");
 		#endif
 
-		print ("h = " + h);
+		//print ("h = " + h);
 		// Pass all parameters to the character control script.
 		character.Move( h, crouch , jump );
 
