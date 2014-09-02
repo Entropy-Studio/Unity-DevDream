@@ -7,6 +7,13 @@ public class PlayerController : MonoBehaviour
 {
 	private TestCollision collision;
 
+	[SerializeField] bool airControl = true;
+	[SerializeField] bool switchWallSlide = true;
+	[SerializeField] bool switchWallJump = true;
+	[SerializeField] bool switchFallDamage = true;
+	[SerializeField] bool switchCrouch = true;
+	[SerializeField] bool switchBunnyJump = true;
+
 	[SerializeField]
 	float maxVSpeed = 30f;
 	[SerializeField]
@@ -28,8 +35,7 @@ public class PlayerController : MonoBehaviour
 
 	[Range(0, 1)]
 	[SerializeField] float crouchSpeed = 0.33f;
-	
-	[SerializeField] bool airControl = true;
+
 	[SerializeField] LayerMask whatIsGround;
 	[SerializeField] LayerMask whatIsWall;
 
@@ -66,18 +72,34 @@ public class PlayerController : MonoBehaviour
 	{
 		if (!dead)
 		{
-			FallDamage();
-
+			if (switchFallDamage)
+			{
+				FallDamage();
+			}
 			if(!noMove)
 			{
-				Crouch(crouch);
+				if (switchCrouch)
+				{
+					Crouch(crouch);
+				}
 				Move(move, crouch);
 				Jump(jump, crouch);
 			}
 
-			WallSlide();
-			WallJump(jump);
-			BunnyJump();
+			if (switchWallSlide)
+			{
+				WallSlide();
+			}
+
+			if (switchWallJump)
+			{
+				WallJump(jump);
+			}
+
+			if (switchBunnyJump)
+			{
+				BunnyJump();
+			}
 		}
 
 	}
