@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] bool switchFallDamage = true;
 	[SerializeField] bool switchCrouch = true;
 	[SerializeField] bool switchBunnyJump = true;
+	[SerializeField] bool switchSprint = true;
 
 	[SerializeField]
 	float maxVSpeed = 30f;
@@ -30,6 +31,14 @@ public class PlayerController : MonoBehaviour
 	float bunnyDelay = 1.0f;
 	[SerializeField]
 	float wallPushForce = 10f;
+	[SerializeField]
+	float recoveryLimitSpeed = 20f;
+	[SerializeField]
+	float sprintSpeed = 15f;
+
+	// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+	// ako menjas maxSpeed obavezno promeni i u Sprint funkciji!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
+	// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 	bool facingRight = true;
 
@@ -68,8 +77,21 @@ public class PlayerController : MonoBehaviour
 		anim.SetBool("Dead", dead);
 	}
 
-	public void Action(float move, bool crouch, bool jump)
+	void Death()
 	{
+		dead = true;
+	}
+
+	void FallDamage()
+	{
+		if(rigidbody2D.velocity.y <= -killSpeed && collision.groundedPlus)
+		{
+			Death ();
+		}
+	}
+
+	public void Action(float move, bool crouch, bool jump, bool sprint)
+	{	
 		if (!dead)
 		{
 			if (switchFallDamage)
@@ -100,17 +122,16 @@ public class PlayerController : MonoBehaviour
 			{
 				BunnyJump();
 			}
+			if (switchSprint)
+			{
+				Sprint(sprint);
+			}
+			JumpRecoveryF();
 		}
 
 	}
 
-	void FallDamage()
-	{
-		if(rigidbody2D.velocity.y <= -killSpeed && collision.groundedPlus)
-		{
-			Death ();
-		}
-	}
+
 
 	void Crouch(bool crouch)
 	{
@@ -132,7 +153,7 @@ public class PlayerController : MonoBehaviour
 		if(collision.grounded || airControl)
 		{
 			// Reduce the speed if crouching by the crouchSpeed multiplier
-			move = (crouch ? move * crouchSpeed : move); // ako je crouch tacno onda je move = move * crouchSpeed inace je move = move
+			move = (anim.GetBool("Crouch") ? move * crouchSpeed : move); // ako je crouch tacno onda je move = move * crouchSpeed inace je move = move
 			
 			// The Speed animator parameter is set to the absolute value of the horizontal input.
 			anim.SetFloat("Speed", Mathf.Abs(move));
@@ -182,7 +203,7 @@ public class PlayerController : MonoBehaviour
 
 	void WallJump(bool jump)
 	{
-		if(collision.touchingWall && jump)
+		if(collision.touchingWall && jump && !collision.grounded)
 		{
 			if (facingRight)
 			{
@@ -225,6 +246,29 @@ public class PlayerController : MonoBehaviour
 		}
 	}
 
+	void JumpRecoveryF()
+	{
+		if(rigidbody2D.velocity.y < -recoveryLimitSpeed && collision.groundedPlus)
+		{
+			StartCoroutine(JumpRecovery(1f));
+		}
+	}
+
+	void Sprint(bool sprint)
+	{
+		if(!anim.GetBool("Crouch"))
+		{
+			if (sprint)
+			{
+				maxSpeed = sprintSpeed;
+			}
+			else
+			{
+				maxSpeed = 10f;
+			}
+		}
+	}
+
 	void Flip ()
 	{
 		if (!dead)
@@ -238,10 +282,7 @@ public class PlayerController : MonoBehaviour
 			transform.localScale = theScale;
 		}
 	}
-	void Death()
-	{
-		dead = true;
-	}
+
 	
 	void OnTriggerEnter2D (Collider2D other)
 	{
@@ -259,5 +300,17 @@ public class PlayerController : MonoBehaviour
 		bunnyJumpAllowed = false;
 		anim.SetBool("Jump Recovery", false);
 		noMove = false;
+	}
+
+	IEnumerator JumpRecovery(float sec)
+	{
+		if(!dead)
+		{
+			noMove = true;
+			anim.SetBool("Jump Recovery", true);
+			yield return new WaitForSeconds(sec);
+			anim.SetBool("Jump Recovery", false);
+			noMove = false;
+		}
 	}
 }

@@ -24,6 +24,7 @@ public class Platformer2DUserControl : MonoBehaviour
 	void FixedUpdate()
 	{
 		// Read the inputs.
+		bool sprint = Input.GetButton("Sprint");
 		bool crouch = Input.GetButton("Crouch");
 		#if CROSS_PLATFORM_INPUT
 		float h = CrossPlatformInput.GetAxis("Horizontal");
@@ -31,7 +32,7 @@ public class Platformer2DUserControl : MonoBehaviour
 		float h = Input.GetAxis("Horizontal");
 		#endif
 
-		character.Action( h, crouch , jump );
+		character.Action( h, crouch , jump, sprint );
 
         // Reset the jump input once it has been used.
 	    jump = false;

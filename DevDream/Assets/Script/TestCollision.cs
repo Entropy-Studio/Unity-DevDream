@@ -3,13 +3,16 @@ using System.Collections;
 
 public class TestCollision : MonoBehaviour {
 
+	[SerializeField] bool drawGizmos = true;
 
 	[SerializeField] LayerMask whatIsGround;
 	[SerializeField] LayerMask whatIsWall;
 
 	[SerializeField] Transform groundCheck;
 	[SerializeField] float groundedRadius = 0.2f;
-	[SerializeField] float groundedRadiusPlus = 0.6f;
+
+	[SerializeField] Transform startCastGround;
+	[SerializeField] Transform endCastGround;
 
 	
 	[SerializeField] Transform ceilingCheck;
@@ -25,28 +28,36 @@ public class TestCollision : MonoBehaviour {
 	public bool touchingWall {get; private set;}
 
 
-	void FixedUpdate () 
+	void Update () 
 	{	
 		grounded = Physics2D.OverlapCircle(groundCheck.position, groundedRadius, whatIsGround);
-		groundedPlus = Physics2D.OverlapCircle(groundCheck.position, groundedRadiusPlus, whatIsGround);
+		groundedPlus = Physics2D.Linecast(startCastGround.position, endCastGround.position, whatIsGround);
 		touchingWall = Physics2D.OverlapCircle(wallCheck.position, wallTouchRadius, whatIsWall);
 		touchingCeiling = Physics2D.OverlapCircle(ceilingCheck.position, ceilingRadius, whatIsGround);
 	}
 
 	void OnDrawGizmos()
 	{
-		Gizmos.color = touchingWall ? Color.red : Color.white;
-		Gizmos.DrawSphere(wallCheck.position, wallTouchRadius);
-				
-		Gizmos.color = groundedPlus ? Color.blue : Color.yellow;
-		Gizmos.DrawSphere(groundCheck.position, groundedRadiusPlus);
-
-		Gizmos.color = grounded ? Color.red : Color.white;
-		Gizmos.DrawSphere(groundCheck.position, groundedRadius);
-
-		Gizmos.color = touchingCeiling ? Color.red : Color.white;
-		Gizmos.DrawSphere(ceilingCheck.position, ceilingRadius);
-
-		Gizmos.color = Color.white;
+		if(drawGizmos)
+		{
+			Gizmos.color = touchingWall ? Color.red : Color.white;
+			Gizmos.DrawSphere(wallCheck.position, wallTouchRadius);
+			
+			if(groundedPlus)
+			{
+				Debug.DrawLine(startCastGround.position, endCastGround.position, Color.red);
+			}else
+			{
+				Debug.DrawLine(startCastGround.position, endCastGround.position, Color.blue);
+			}
+			
+			Gizmos.color = grounded ? Color.red : Color.white;
+			Gizmos.DrawSphere(groundCheck.position, groundedRadius);
+			
+			Gizmos.color = touchingCeiling ? Color.red : Color.white;
+			Gizmos.DrawSphere(ceilingCheck.position, ceilingRadius);
+			
+			Gizmos.color = Color.white;
+		}
 	}
 }
