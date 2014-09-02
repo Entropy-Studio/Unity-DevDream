@@ -52,9 +52,10 @@
      <Compile Include="Assets\Script\MainMenu.cs" />
      <Compile Include="Assets\Script\Parallaxing.cs" />
      <Compile Include="Assets\Script\Platformer2DUserControl.cs" />
-     <Compile Include="Assets\Script\PlatformerCharacter2D.cs" />
+     <Compile Include="Assets\Script\PlayerController.cs" />
      <Compile Include="Assets\Script\RestartLevel.cs" />
      <Compile Include="Assets\Script\Restarter.cs" />
+     <Compile Include="Assets\Script\TestCollision.cs" />
      <Compile Include="Assets\Script\Tiling.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

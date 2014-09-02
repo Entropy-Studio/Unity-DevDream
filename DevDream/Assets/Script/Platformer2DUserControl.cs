@@ -1,15 +1,14 @@
 ﻿using UnityEngine;
 
-[RequireComponent(typeof(PlatformerCharacter2D))]
+[RequireComponent(typeof(PlayerController))]
 public class Platformer2DUserControl : MonoBehaviour 
 {
-	private PlatformerCharacter2D character;
+	private PlayerController character;
     private bool jump;
-
 
 	void Awake()
 	{
-		character = GetComponent<PlatformerCharacter2D>();
+		character = GetComponent<PlayerController>();
 	}
 
     void Update ()
@@ -20,7 +19,6 @@ public class Platformer2DUserControl : MonoBehaviour
 		#else
 		if (Input.GetButtonDown("Jump")) jump = true;
 		#endif
-
     }
 
 	void FixedUpdate()
@@ -33,9 +31,7 @@ public class Platformer2DUserControl : MonoBehaviour
 		float h = Input.GetAxis("Horizontal");
 		#endif
 
-		//print ("h = " + h);
-		// Pass all parameters to the character control script.
-		character.Move( h, crouch , jump );
+		character.Action( h, crouch , jump );
 
         // Reset the jump input once it has been used.
 	    jump = false;
