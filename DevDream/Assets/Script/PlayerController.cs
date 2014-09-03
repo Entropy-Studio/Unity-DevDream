@@ -174,7 +174,7 @@ public class PlayerController : MonoBehaviour
 		}
 		if(airControl)
 		{
-			rigidbody2D.AddForce(new Vector2(move*100f, 0f));
+			rigidbody2D.AddForce(new Vector2(move*70f, 0f));
 			if (rigidbody2D.velocity.x > maxSpeed)
 			{
 				rigidbody2D.velocity = new Vector2(maxSpeed, rigidbody2D.velocity.y);
