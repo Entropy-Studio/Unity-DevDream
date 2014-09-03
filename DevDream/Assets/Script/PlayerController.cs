@@ -150,7 +150,7 @@ public class PlayerController : MonoBehaviour
 	void Move(float move, bool crouch)
 	{
 		// only control the player if grounded or airControl is turned on
-		if(collision.grounded)
+		if(collision.grounded || (collision.touchingWall && !collision.groundedPlus && Input.GetAxis("Horizontal") != 0))
 		{
 			// Reduce the speed if crouching by the crouchSpeed multiplier
 			move = (anim.GetBool("Crouch") ? move * crouchSpeed : move); // ako je crouch tacno onda je move = move * crouchSpeed inace je move = move
