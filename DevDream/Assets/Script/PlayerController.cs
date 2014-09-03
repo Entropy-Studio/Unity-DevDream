@@ -150,7 +150,7 @@ public class PlayerController : MonoBehaviour
 	void Move(float move, bool crouch)
 	{
 		// only control the player if grounded or airControl is turned on
-		if(collision.grounded || airControl)
+		if(collision.grounded)
 		{
 			// Reduce the speed if crouching by the crouchSpeed multiplier
 			move = (anim.GetBool("Crouch") ? move * crouchSpeed : move); // ako je crouch tacno onda je move = move * crouchSpeed inace je move = move
@@ -163,6 +163,28 @@ public class PlayerController : MonoBehaviour
 			// Move the character
 			rigidbody2D.velocity = new Vector2(move * maxSpeed, vSpeed);
 			
+			// If the input is moving the player right and the player is facing left...
+			if(move > 0 && !facingRight)
+				// ... flip the player.
+				Flip();
+			// Otherwise if the input is moving the player left and the player is facing right...
+			else if(move < 0 && facingRight)
+				// ... flip the player.
+				Flip();
+		}
+		if(airControl)
+		{
+			rigidbody2D.AddForce(new Vector2(move*30f, 0f));
+			if (rigidbody2D.velocity.x > maxSpeed)
+			{
+				rigidbody2D.velocity = new Vector2(maxSpeed, rigidbody2D.velocity.y);
+			}
+
+			if (rigidbody2D.velocity.x < -maxSpeed)
+			{
+				rigidbody2D.velocity = new Vector2(-maxSpeed, rigidbody2D.velocity.y);
+			}
+
 			// If the input is moving the player right and the player is facing left...
 			if(move > 0 && !facingRight)
 				// ... flip the player.
@@ -214,6 +236,8 @@ public class PlayerController : MonoBehaviour
 				rigidbody2D.velocity = new Vector2(wallPushForce, 0f);
 			}
 			rigidbody2D.AddForce(new Vector2(0f, jumpForce));
+
+			Flip();
 		}
 	}
 
