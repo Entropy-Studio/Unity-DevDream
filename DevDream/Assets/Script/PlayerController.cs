@@ -214,7 +214,7 @@ public class PlayerController : MonoBehaviour
 		if (collision.touchingWall && !collision.groundedPlus && Input.GetAxis("Horizontal") != 0)
 		{
 			anim.SetBool("WallSlide", true);
-			minVSpeed = -1f;
+			minVSpeed = -5f;
 		}
 		else 
 		{
