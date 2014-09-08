@@ -6,7 +6,7 @@ using System.Collections;
 public class PlayerController : MonoBehaviour 
 {
 	private TestCollision collision;
-
+	
 	[SerializeField] bool airControl = true;
 	[SerializeField] bool switchWallSlide = true;
 	[SerializeField] bool switchWallJump = true;
@@ -14,11 +14,13 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] bool switchCrouch = true;
 	[SerializeField] bool switchBunnyJump = true;
 	[SerializeField] bool switchSprint = true;
-
+	
 	[SerializeField]
 	float maxVSpeed = 30f;
 	[SerializeField]
 	float minVSpeed = -30f;
+	[SerializeField]
+	float slideVSpeed = -5f;
 	[SerializeField]
 	float killSpeed = 25f;
 	[SerializeField]
@@ -35,21 +37,20 @@ public class PlayerController : MonoBehaviour
 	float recoveryLimitSpeed = 20f;
 	[SerializeField]
 	float sprintSpeed = 15f;
-
-	// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-	// ako menjas maxSpeed obavezno promeni i u Sprint funkciji!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
-	// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-
+	
+	float tempVSpeed;
+	float tempHSpeed;
+	
 	bool facingRight = true;
-
+	
 	[Range(0, 1)]
 	[SerializeField] float crouchSpeed = 0.33f;
-
+	
 	[SerializeField] LayerMask whatIsGround;
 	[SerializeField] LayerMask whatIsWall;
-
+	
 	Animator anim;	
-
+	
 	bool dead = false;
 	bool alreadyJumped = false;
 	bool bunnyJumpAllowed = false;
@@ -57,31 +58,40 @@ public class PlayerController : MonoBehaviour
 	
 	void Awake()
 	{
+		tempVSpeed = minVSpeed;
+		tempHSpeed = maxSpeed;
 		collision = GetComponent<TestCollision>();
-
+		
 		anim = GetComponent<Animator>();
 	}
-
+	
 	void Update()
 	{
-
+		if (rigidbody2D.velocity.y <= minVSpeed)
+		{
+			rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, minVSpeed);
+		}
+		if (rigidbody2D.velocity.y >= maxVSpeed)
+		{
+			rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, maxVSpeed);
+		}
 	}
-
+	
 	void FixedUpdate()
 	{
 		anim.SetBool("Ground", collision.grounded);
-
+		
 		// Set the vertical animation
 		anim.SetFloat("vSpeed", rigidbody2D.velocity.y);
 		
 		anim.SetBool("Dead", dead);
 	}
-
+	
 	void Death()
 	{
 		dead = true;
 	}
-
+	
 	void FallDamage()
 	{
 		if(rigidbody2D.velocity.y <= -killSpeed && collision.groundedPlus)
@@ -89,9 +99,10 @@ public class PlayerController : MonoBehaviour
 			Death ();
 		}
 	}
-
+	
 	public void Action(float move, bool crouch, bool jump, bool sprint)
 	{	
+		
 		if (!dead)
 		{
 			if (switchFallDamage)
@@ -107,17 +118,17 @@ public class PlayerController : MonoBehaviour
 				Move(move, crouch);
 				Jump(jump, crouch);
 			}
-
+			
 			if (switchWallSlide)
 			{
 				WallSlide();
 			}
-
+			
 			if (switchWallJump)
 			{
 				WallJump(jump);
 			}
-
+			
 			if (switchBunnyJump)
 			{
 				BunnyJump();
@@ -128,11 +139,13 @@ public class PlayerController : MonoBehaviour
 			}
 			JumpRecoveryF();
 		}
-
+		
+		
+		
 	}
-
-
-
+	
+	
+	
 	void Crouch(bool crouch)
 	{
 		// If crouching, check to see if the character can stand up
@@ -146,7 +159,7 @@ public class PlayerController : MonoBehaviour
 		// Set whether or not the character is crouching in the animator
 		anim.SetBool("Crouch", crouch);
 	}
-
+	
 	void Move(float move, bool crouch)
 	{
 		// only control the player if grounded or airControl is turned on
@@ -174,17 +187,20 @@ public class PlayerController : MonoBehaviour
 		}
 		if(airControl)
 		{
+			// maksimalna vertikalna brzina
+			float vSpeed = Mathf.Clamp(rigidbody2D.velocity.y, minVSpeed, maxVSpeed);
+			
 			rigidbody2D.AddForce(new Vector2(move*70f, 0f));
 			if (rigidbody2D.velocity.x > maxSpeed)
 			{
-				rigidbody2D.velocity = new Vector2(maxSpeed, rigidbody2D.velocity.y);
+				rigidbody2D.velocity = new Vector2(maxSpeed, vSpeed);
 			}
-
+			
 			if (rigidbody2D.velocity.x < -maxSpeed)
 			{
-				rigidbody2D.velocity = new Vector2(-maxSpeed, rigidbody2D.velocity.y);
+				rigidbody2D.velocity = new Vector2(-maxSpeed, vSpeed);
 			}
-
+			
 			// If the input is moving the player right and the player is facing left...
 			if(move > 0 && !facingRight)
 				// ... flip the player.
@@ -195,7 +211,7 @@ public class PlayerController : MonoBehaviour
 				Flip();
 		}
 	}
-
+	
 	void Jump (bool jump, bool crouch)
 	{
 		if(!crouch)
@@ -208,21 +224,21 @@ public class PlayerController : MonoBehaviour
 			}
 		}
 	}
-
+	
 	void WallSlide ()
 	{
 		if (collision.touchingWall && !collision.groundedPlus && Input.GetAxis("Horizontal") != 0)
 		{
 			anim.SetBool("WallSlide", true);
-			minVSpeed = -5f;
+			minVSpeed = slideVSpeed;
 		}
 		else 
 		{
 			anim.SetBool("WallSlide", false);
-			minVSpeed = -30f;
+			minVSpeed = tempVSpeed;
 		}
 	}
-
+	
 	void WallJump(bool jump)
 	{
 		if(collision.touchingWall && jump && !collision.grounded)
@@ -236,11 +252,11 @@ public class PlayerController : MonoBehaviour
 				rigidbody2D.velocity = new Vector2(wallPushForce, 0f);
 			}
 			rigidbody2D.AddForce(new Vector2(0f, jumpForce));
-
+			
 			Flip();
 		}
 	}
-
+	
 	void BunnyJump()
 	{
 		if(alreadyJumped && collision.groundedPlus && rigidbody2D.velocity.y < 0)
@@ -249,7 +265,7 @@ public class PlayerController : MonoBehaviour
 			bunnyJumpAllowed = true;
 			StartCoroutine(BunnyDelay(bunnyDelay));
 		}
-
+		
 		if (bunnyJumpAllowed)
 		{
 			if (collision.grounded && Input.GetButtonUp("Jump"))
@@ -263,13 +279,13 @@ public class PlayerController : MonoBehaviour
 				{
 					rigidbody2D.velocity = new Vector2(-maxSpeed, 0f);
 				}
-
+				
 				rigidbody2D.AddForce(new Vector2(0f, bunnyJumpForce));
 				bunnyJumpAllowed = false;
 			}
 		}
 	}
-
+	
 	void JumpRecoveryF()
 	{
 		if(rigidbody2D.velocity.y < -recoveryLimitSpeed && collision.groundedPlus)
@@ -277,7 +293,7 @@ public class PlayerController : MonoBehaviour
 			StartCoroutine(JumpRecovery(1f));
 		}
 	}
-
+	
 	void Sprint(bool sprint)
 	{
 		if(!anim.GetBool("Crouch"))
@@ -288,11 +304,11 @@ public class PlayerController : MonoBehaviour
 			}
 			else
 			{
-				maxSpeed = 10f;
+				maxSpeed = tempHSpeed;
 			}
 		}
 	}
-
+	
 	void Flip ()
 	{
 		if (!dead)
@@ -306,7 +322,7 @@ public class PlayerController : MonoBehaviour
 			transform.localScale = theScale;
 		}
 	}
-
+	
 	
 	void OnTriggerEnter2D (Collider2D other)
 	{
@@ -315,7 +331,7 @@ public class PlayerController : MonoBehaviour
 			dead = true;
 		}
 	}
-
+	
 	IEnumerator BunnyDelay(float sec)
 	{
 		noMove = true;
@@ -325,7 +341,7 @@ public class PlayerController : MonoBehaviour
 		anim.SetBool("Jump Recovery", false);
 		noMove = false;
 	}
-
+	
 	IEnumerator JumpRecovery(float sec)
 	{
 		if(!dead)
