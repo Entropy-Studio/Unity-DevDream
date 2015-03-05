@@ -7,7 +7,7 @@ public class Restarter : MonoBehaviour {
 
 	void OnTriggerEnter2D (Collider2D other)
 	{
-		if(other.tag == "Player")
+		if(other.tag == Tags.playerTag)
 			Application.LoadLevel(Application.loadedLevelName);
 	}
 }

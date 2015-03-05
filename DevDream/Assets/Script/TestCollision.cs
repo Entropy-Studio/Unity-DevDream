@@ -27,7 +27,6 @@ public class TestCollision : MonoBehaviour {
 	public bool touchingCeiling {get; private set;}
 	public bool touchingWall {get; private set;}
 
-
 	void Update () 
 	{	
 		grounded = Physics2D.OverlapCircle(groundCheck.position, groundedRadius, whatIsGround);

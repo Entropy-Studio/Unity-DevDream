@@ -48,16 +48,22 @@ public class PlayerController : MonoBehaviour
 	
 	[SerializeField] LayerMask whatIsGround;
 	[SerializeField] LayerMask whatIsWall;
-	
-	Animator anim;	
+
+    Animator anim;
+    HashIDs hash;
 	
 	bool dead = false;
 	bool alreadyJumped = false;
 	bool bunnyJumpAllowed = false;
 	bool noMove = false;
+
+    [SerializeField]
+    float health;
 	
 	void Awake()
 	{
+        hash = GameObject.FindGameObjectWithTag(Tags.gameController).GetComponent<HashIDs>();
+
 		tempVSpeed = minVSpeed;
 		tempHSpeed = maxSpeed;
 		collision = GetComponent<TestCollision>();
@@ -67,34 +73,42 @@ public class PlayerController : MonoBehaviour
 	
 	void Update()
 	{
-		if (rigidbody2D.velocity.y <= minVSpeed)
+        health = GetComponent<HealthController>().health;
+
+		if (GetComponent<Rigidbody2D>().velocity.y <= minVSpeed)
 		{
-			rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, minVSpeed);
+			GetComponent<Rigidbody2D>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, minVSpeed);
 		}
-		if (rigidbody2D.velocity.y >= maxVSpeed)
+		
+        if (GetComponent<Rigidbody2D>().velocity.y >= maxVSpeed)
 		{
-			rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, maxVSpeed);
+			GetComponent<Rigidbody2D>().velocity = new Vector2(GetComponent<Rigidbody2D>().velocity.x, maxVSpeed);
 		}
+       
+        if (health <= 0)
+        {
+            Death();
+        }
 	}
 	
 	void FixedUpdate()
 	{
-		anim.SetBool("Ground", collision.grounded);
+        anim.SetBool(hash.groundBool, collision.grounded);
 		
 		// Set the vertical animation
-		anim.SetFloat("vSpeed", rigidbody2D.velocity.y);
+		anim.SetFloat(hash.vSpeedFloat, GetComponent<Rigidbody2D>().velocity.y);
 		
-		anim.SetBool("Dead", dead);
+		anim.SetBool(hash.deadBool, dead);
 	}
 	
-	void Death()
+	public void Death()
 	{
 		dead = true;
 	}
 	
 	void FallDamage()
 	{
-		if(rigidbody2D.velocity.y <= -killSpeed && collision.groundedPlus)
+		if(GetComponent<Rigidbody2D>().velocity.y <= -killSpeed && collision.groundedPlus)
 		{
 			Death ();
 		}
@@ -138,18 +152,13 @@ public class PlayerController : MonoBehaviour
 				Sprint(sprint);
 			}
 			JumpRecoveryF();
-		}
-		
-		
-		
+		}		
 	}
-	
-	
 	
 	void Crouch(bool crouch)
 	{
 		// If crouching, check to see if the character can stand up
-		if(!crouch && anim.GetBool("Crouch"))
+		if(!crouch && anim.GetBool(hash.crouchBool))
 		{
 			// If the character has a ceiling preventing them from standing up, keep them crouching
 			if(collision.touchingCeiling)
@@ -157,7 +166,7 @@ public class PlayerController : MonoBehaviour
 		}
 		
 		// Set whether or not the character is crouching in the animator
-		anim.SetBool("Crouch", crouch);
+        anim.SetBool(hash.crouchBool, crouch);
 	}
 	
 	void Move(float move, bool crouch)
@@ -166,15 +175,15 @@ public class PlayerController : MonoBehaviour
 		if(collision.grounded || (collision.touchingWall && !collision.groundedPlus && Input.GetAxis("Horizontal") != 0))
 		{
 			// Reduce the speed if crouching by the crouchSpeed multiplier
-			move = (anim.GetBool("Crouch") ? move * crouchSpeed : move); // ako je crouch tacno onda je move = move * crouchSpeed inace je move = move
+            move = (anim.GetBool(hash.crouchBool) ? move * crouchSpeed : move); // ako je crouch tacno onda je move = move * crouchSpeed inace je move = move
 			
 			// The Speed animator parameter is set to the absolute value of the horizontal input.
-			anim.SetFloat("Speed", Mathf.Abs(move));
+			anim.SetFloat(hash.speedFloat, Mathf.Abs(move));
 			
 			// maksimalna vertikalna brzina
-			float vSpeed = Mathf.Clamp(rigidbody2D.velocity.y, minVSpeed, maxVSpeed);
+			float vSpeed = Mathf.Clamp(GetComponent<Rigidbody2D>().velocity.y, minVSpeed, maxVSpeed);
 			// Move the character
-			rigidbody2D.velocity = new Vector2(move * maxSpeed, vSpeed);
+			GetComponent<Rigidbody2D>().velocity = new Vector2(move * maxSpeed, vSpeed);
 			
 			// If the input is moving the player right and the player is facing left...
 			if(move > 0 && !facingRight)
@@ -188,17 +197,17 @@ public class PlayerController : MonoBehaviour
 		if(airControl)
 		{
 			// maksimalna vertikalna brzina
-			float vSpeed = Mathf.Clamp(rigidbody2D.velocity.y, minVSpeed, maxVSpeed);
+			float vSpeed = Mathf.Clamp(GetComponent<Rigidbody2D>().velocity.y, minVSpeed, maxVSpeed);
 			
-			rigidbody2D.AddForce(new Vector2(move*70f, 0f));
-			if (rigidbody2D.velocity.x > maxSpeed)
+			GetComponent<Rigidbody2D>().AddForce(new Vector2(move*70f, 0f));
+			if (GetComponent<Rigidbody2D>().velocity.x > maxSpeed)
 			{
-				rigidbody2D.velocity = new Vector2(maxSpeed, vSpeed);
+				GetComponent<Rigidbody2D>().velocity = new Vector2(maxSpeed, vSpeed);
 			}
 			
-			if (rigidbody2D.velocity.x < -maxSpeed)
+			if (GetComponent<Rigidbody2D>().velocity.x < -maxSpeed)
 			{
-				rigidbody2D.velocity = new Vector2(-maxSpeed, vSpeed);
+				GetComponent<Rigidbody2D>().velocity = new Vector2(-maxSpeed, vSpeed);
 			}
 			
 			// If the input is moving the player right and the player is facing left...
@@ -218,8 +227,8 @@ public class PlayerController : MonoBehaviour
 		{
 			if (collision.grounded && jump) 
 			{
-				anim.SetBool("Ground", false);
-				rigidbody2D.AddForce(new Vector2(0f, jumpForce));
+				anim.SetBool(hash.groundBool, false);
+				GetComponent<Rigidbody2D>().AddForce(new Vector2(0f, jumpForce));
 				alreadyJumped = true;
 			}
 		}
@@ -229,12 +238,12 @@ public class PlayerController : MonoBehaviour
 	{
 		if (collision.touchingWall && !collision.groundedPlus && Input.GetAxis("Horizontal") != 0)
 		{
-			anim.SetBool("WallSlide", true);
+			anim.SetBool(hash.wallSlideBool, true);
 			minVSpeed = slideVSpeed;
 		}
 		else 
 		{
-			anim.SetBool("WallSlide", false);
+            anim.SetBool(hash.wallSlideBool, false);
 			minVSpeed = tempVSpeed;
 		}
 	}
@@ -245,13 +254,13 @@ public class PlayerController : MonoBehaviour
 		{
 			if (facingRight)
 			{
-				rigidbody2D.velocity = new Vector2(-wallPushForce, 0f);
+				GetComponent<Rigidbody2D>().velocity = new Vector2(-wallPushForce, 0f);
 			}
 			else
 			{
-				rigidbody2D.velocity = new Vector2(wallPushForce, 0f);
+				GetComponent<Rigidbody2D>().velocity = new Vector2(wallPushForce, 0f);
 			}
-			rigidbody2D.AddForce(new Vector2(0f, jumpForce));
+			GetComponent<Rigidbody2D>().AddForce(new Vector2(0f, jumpForce));
 			
 			Flip();
 		}
@@ -259,7 +268,7 @@ public class PlayerController : MonoBehaviour
 	
 	void BunnyJump()
 	{
-		if(alreadyJumped && collision.groundedPlus && rigidbody2D.velocity.y < 0)
+		if(alreadyJumped && collision.groundedPlus && GetComponent<Rigidbody2D>().velocity.y < 0)
 		{
 			alreadyJumped = false;
 			bunnyJumpAllowed = true;
@@ -270,17 +279,17 @@ public class PlayerController : MonoBehaviour
 		{
 			if (collision.grounded && Input.GetButtonUp("Jump"))
 			{
-				anim.SetBool("Ground", false);
+				anim.SetBool(hash.groundBool, false);
 				if (facingRight)
 				{
-					rigidbody2D.velocity = new Vector2(maxSpeed, 0f);
+					GetComponent<Rigidbody2D>().velocity = new Vector2(maxSpeed, 0f);
 				}
 				else
 				{
-					rigidbody2D.velocity = new Vector2(-maxSpeed, 0f);
+					GetComponent<Rigidbody2D>().velocity = new Vector2(-maxSpeed, 0f);
 				}
 				
-				rigidbody2D.AddForce(new Vector2(0f, bunnyJumpForce));
+				GetComponent<Rigidbody2D>().AddForce(new Vector2(0f, bunnyJumpForce));
 				bunnyJumpAllowed = false;
 			}
 		}
@@ -288,7 +297,7 @@ public class PlayerController : MonoBehaviour
 	
 	void JumpRecoveryF()
 	{
-		if(rigidbody2D.velocity.y < -recoveryLimitSpeed && collision.groundedPlus)
+		if(GetComponent<Rigidbody2D>().velocity.y < -recoveryLimitSpeed && collision.groundedPlus)
 		{
 			StartCoroutine(JumpRecovery(1f));
 		}
@@ -296,7 +305,7 @@ public class PlayerController : MonoBehaviour
 	
 	void Sprint(bool sprint)
 	{
-		if(!anim.GetBool("Crouch"))
+		if(!anim.GetBool(hash.crouchBool))
 		{
 			if (sprint)
 			{
@@ -322,23 +331,14 @@ public class PlayerController : MonoBehaviour
 			transform.localScale = theScale;
 		}
 	}
-	
-	
-	void OnTriggerEnter2D (Collider2D other)
-	{
-		if(other.tag == "Ubi na dodir")
-		{
-			dead = true;
-		}
-	}
-	
+		
 	IEnumerator BunnyDelay(float sec)
 	{
 		noMove = true;
-		anim.SetBool("Jump Recovery", true);
+		anim.SetBool(hash.jumpRecoveryBool, true);
 		yield return new WaitForSeconds(sec);
 		bunnyJumpAllowed = false;
-		anim.SetBool("Jump Recovery", false);
+        anim.SetBool(hash.jumpRecoveryBool, false);
 		noMove = false;
 	}
 	
@@ -347,9 +347,9 @@ public class PlayerController : MonoBehaviour
 		if(!dead)
 		{
 			noMove = true;
-			anim.SetBool("Jump Recovery", true);
+            anim.SetBool(hash.jumpRecoveryBool, true);
 			yield return new WaitForSeconds(sec);
-			anim.SetBool("Jump Recovery", false);
+            anim.SetBool(hash.jumpRecoveryBool, false);
 			noMove = false;
 		}
 	}
